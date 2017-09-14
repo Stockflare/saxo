@@ -1,0 +1,5 @@
+saxo:
+  build: .
+  command: /bin/bash
+  volumes:
+    - .:/stockflare
