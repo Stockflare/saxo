@@ -14,7 +14,7 @@ module Saxo
         body = {
           token: token,
           accountNumber: account_number,
-          apiKey: Saxo.api_key
+          apiKey: Saxo.app_key
         }
 
         body[:orderNumber] = order_number if order_number

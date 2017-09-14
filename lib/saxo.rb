@@ -14,7 +14,7 @@ module Saxo
   autoload :Instrument, 'saxo/instrument'
 
   class << self
-    attr_writer :logger, :api_uri, :api_key, :price_service_url
+    attr_writer :logger, :api_uri, :app_key, :app_url, :authentication_url, :app_secret
 
     # Helper to configure .
     #
@@ -41,19 +41,7 @@ module Saxo
     # Tradeit brokers as symbols
     def brokers
       {
-        td: 'TD',
-        etrade: 'Etrade',
-        scottrade: 'Scottrade',
-        fidelity: 'Fidelity',
-        schwab: 'Schwab',
-        trade_station: 'TradeStation',
-        robinhood: 'Robinhood',
-        options_house: 'OptionsHouse',
-        tradier: 'Tradier',
-        trade_king: 'TradeKing',
-        vanguard: 'Vanguard',
-        ib: 'IB',
-        dummy: 'Dummy'
+        saxo: 'Saxo'
       }
     end
 
@@ -146,15 +134,15 @@ module Saxo
       end
     end
 
-    def api_key
-      if @api_key
-        return @api_key
+    def app_key
+      if @app_key
+        return @app_key
       else
         raise Trading::Errors::ConfigException.new(
           type: :error,
           code: 500,
-          description: 'api_key missing',
-          messages: ['api_key configuration variable has not been set']
+          description: 'app_key missing',
+          messages: ['app_key configuration variable has not been set']
         )
       end
     end
@@ -168,6 +156,45 @@ module Saxo
           code: 500,
           description: 'price_service_url missing',
           messages: ['price_service_url configuration variable has not been set']
+        )
+      end
+    end
+
+    def app_url
+      if @app_url
+        return @app_url
+      else
+        raise Trading::Errors::ConfigException.new(
+          type: :error,
+          code: 500,
+          description: 'app_url missing',
+          messages: ['app_url configuration variable has not been set']
+        )
+      end
+    end
+
+    def authentication_url
+      if @authentication_url
+        return @authentication_url
+      else
+        raise Trading::Errors::ConfigException.new(
+          type: :error,
+          code: 500,
+          description: 'authentication_url missing',
+          messages: ['authentication_url configuration variable has not been set']
+        )
+      end
+    end
+
+    def app_secret
+      if @app_secret
+        return @app_secret
+      else
+        raise Trading::Errors::ConfigException.new(
+          type: :error,
+          code: 500,
+          description: 'app_secret missing',
+          messages: ['app_secret configuration variable has not been set']
         )
       end
     end

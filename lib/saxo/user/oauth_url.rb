@@ -9,7 +9,7 @@ module Saxo
         uri =  URI.join(Saxo.api_uri, 'v1/user/getOAuthLoginPopupUrlForWebApp').to_s
         body = {
           broker: Saxo.brokers[broker],
-          apiKey: Saxo.api_key
+          apiKey: Saxo.app_key
         }
         result = HTTParty.post(uri.to_s, body: body, format: :json)
 

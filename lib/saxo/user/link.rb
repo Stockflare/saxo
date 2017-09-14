@@ -13,7 +13,7 @@ module Saxo
           id: username,
           password: password,
           broker: Saxo.brokers[broker],
-          apiKey: Saxo.api_key
+          apiKey: Saxo.app_key
         }
         result = HTTParty.post(uri.to_s, body: body, format: :json)
 

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>SAML Login Test</title>
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.min.js"
+      integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+      crossorigin="anonymous">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.js" integrity="sha256-GSRe5cHmmTD3DgBxRifzkNLaW1iwPTzt9kJ86rGa8tg=" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <script>
+      $( document ).ready(function() {
+
+        function uuidv4() {
+          return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+          });
+        }
+
+        var uuid = uuidv4()
+        var timestamp = moment.utc().toISOString()
+        var authenticationUrl = "https://sim.logonvalidation.net/AuthnRequest"
+        var applicationUrl = "http://localhost/StockflareWebApp"
+        var issuerUrl = "http://localhost:5000/saml_login.html"
+        var raw = `
+         <samlp:AuthnRequest ID="_${uuid}" Version="2.0" ForceAuthn="false" IsPassive="false" ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" IssueInstant="${timestamp}" Destination="${authenticationUrl}" AssertionConsumerServiceURL="${applicationUrl}"><samlp:NameIDPolicy AllowCreate="false" /><saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">${issuerUrl}</saml:Issuer></samlp:AuthnRequest>`
+         console.log(raw)
+         $("#saml_request").val(btoa(raw))
+      });
+    </script>
+    <h1>
+      SAML Login Test Form
+    </h1>
+    <form action="https://developer.saxobank.com/sim/login/AuthnRequest" method="post">
+      SAMLRequest:<br>
+      <input id="saml_request" type="text" name="SAMLRequest"><br>
+      <input type="submit" value="Submit">
+    </form>
+  </body>
+</html>

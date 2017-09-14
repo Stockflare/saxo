@@ -10,7 +10,7 @@ module Saxo
         uri =  URI.join(Saxo.api_uri, 'v1/user/getOAuthAccessToken').to_s
         body = {
           oAuthVerifier: o_auth_verifier,
-          apiKey: Saxo.api_key
+          apiKey: Saxo.app_key
         }
         result = HTTParty.post(uri.to_s, body: body, format: :json)
 

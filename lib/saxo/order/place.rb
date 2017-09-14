@@ -11,7 +11,7 @@ module Saxo
 
         body = {
           token: token,
-          apiKey: Saxo.api_key
+          apiKey: Saxo.app_key
         }
 
         result = HTTParty.post(uri.to_s, body: body, format: :json)

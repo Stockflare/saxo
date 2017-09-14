@@ -27,7 +27,7 @@ Two attributes need to be set
 ```
 Saxo.configure do |config|
   config.api_uri = ENV['SAXO_BASE_URI']
-  config.api_key = ENV['SAXO_API_KEY']
+  config.app_key = ENV['SAXO_APP_KEY']
 end
 ```
 

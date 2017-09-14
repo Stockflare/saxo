@@ -14,7 +14,7 @@ module Saxo
           token: token,
           accountNumber: account_number,
           orderNumber: order_number,
-          apiKey: Saxo.api_key
+          apiKey: Saxo.app_key
         }
 
         result = HTTParty.post(uri.to_s, body: body, format: :json)

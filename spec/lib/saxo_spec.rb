@@ -6,7 +6,7 @@ describe Saxo do
   end
 
   it 'returns brokers' do
-    expect(Saxo.brokers[:td]).to eq('TD')
+    expect(Saxo.brokers[:saxo]).to eq('Saxo')
   end
 
   describe '#api_uri' do
@@ -20,26 +20,49 @@ describe Saxo do
       expect { Saxo.api_uri }.to raise_error(Trading::Errors::ConfigException)
     end
   end
-  describe '#api_key' do
-    it 'returns ENV - SAXO_API_KEY' do
-      expect(Saxo.api_key).to eql ENV['SAXO_API_KEY']
+  describe '#app_key' do
+    it 'returns ENV - SAXO_APP_KEY' do
+      expect(Saxo.app_key).to eql ENV['SAXO_APP_KEY']
     end
     it 'raises error with no key' do
       Saxo.configure do |config|
-        config.api_key = nil
+        config.app_key = nil
       end
       expect { Saxo.api_uri }.to raise_error(Trading::Errors::ConfigException)
     end
   end
-  describe '#price_service_url' do
-    it 'returns ENV - PRICE_SERVICE_URL' do
-      expect(Saxo.price_service_url).to eql ENV['PRICE_SERVICE_URL']
+  describe '#app_url' do
+    it 'returns ENV - SAXO_APP_URL' do
+      expect(Saxo.app_url).to eql ENV['SAXO_APP_URL']
     end
     it 'raises error with no key' do
       Saxo.configure do |config|
-        config.price_service_url = nil
+        config.app_url = nil
       end
-      expect { Saxo.price_service_url }.to raise_error(Trading::Errors::ConfigException)
+      expect { Saxo.app_url }.to raise_error(Trading::Errors::ConfigException)
+    end
+  end
+  describe '#authentication_url' do
+    it 'returns ENV - SAXO_AUTHENTICATION_URL' do
+      expect(Saxo.authentication_url).to eql ENV['SAXO_AUTHENTICATION_URL']
+    end
+    it 'raises error with no key' do
+      Saxo.configure do |config|
+        config.authentication_url = nil
+      end
+      expect { Saxo.authentication_url }.to raise_error(Trading::Errors::ConfigException)
+    end
+  end
+
+  describe '#app_secret' do
+    it 'returns ENV - SAXO_APP_URL' do
+      expect(Saxo.app_secret).to eql ENV['SAXO_APP_SECRET']
+    end
+    it 'raises error with no key' do
+      Saxo.configure do |config|
+        config.app_secret = nil
+      end
+      expect { Saxo.app_secret }.to raise_error(Trading::Errors::ConfigException)
     end
   end
 

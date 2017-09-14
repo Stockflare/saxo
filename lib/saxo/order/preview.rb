@@ -35,7 +35,7 @@ module Saxo
           orderSymbol: ticker,
           orderPriceType: Saxo.price_types[price_type],
           orderExpiration: Saxo.order_expirations[expiration],
-          apiKey: Saxo.api_key
+          apiKey: Saxo.app_key
         }
 
         body[:orderLimitPrice] = limit_price if price_type == :limit || price_type == :stop_limit
