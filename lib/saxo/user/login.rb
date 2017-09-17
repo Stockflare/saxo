@@ -8,21 +8,32 @@ module Saxo
       end
 
       def call
-        path = "v1/user/authenticate"
-        if identity
-          path = "v1/user/authenticate?srv=#{identity}"
+        token = user_token
+        raw_accounts = Saxo::User::Accounts.new(token: token).call.response.payload.accounts
+        accounts = raw_accounts.map do |a|
+          Saxo::Base::Account.new(
+            account_number: a['AccountId'],
+            name: a['AccountId']
+          ).to_h
         end
-        uri =  URI.join(Saxo.api_uri, path).to_s
 
-        body = {
-          userId: user_id,
-          userToken: user_token,
-          apiKey: Saxo.app_key
-        }
-
-        result = HTTParty.post(uri.to_s, body: body, format: :json)
-
-        self.response = Saxo::User.parse_result(result)
+        if '200' == '200'
+          self.response = Saxo::Base::Response.new(raw: accounts,
+                                                      status: 200,
+                                                      payload: {
+                                                        type: 'success',
+                                                        token: token,
+                                                        accounts: accounts
+                                                      },
+                                                      messages: [])
+        else
+          raise Trading::Errors::LoginException.new(
+            type: :error,
+            code: result['code'],
+            description: result['shortMessage'],
+            messages: result['longMessages']
+          )
+        end
 
         Saxo.logger.info response.to_h
         self

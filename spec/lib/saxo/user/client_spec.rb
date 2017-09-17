@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Saxo::User::Login do
+describe Saxo::User::Client do
   # let(:username) { 'dummy' }
   # let(:password) { 'pass' }
   let(:broker) { :saxo }
@@ -12,12 +12,11 @@ describe Saxo::User::Login do
   #   ).call.response
   # end
   let(:user_id) { 'Saxo' }
-  let(:user_token) { "eyJhY2Nlc3NfdG9rZW4iOiJleUpoYkdjaU9pSkZVekkxTmlJc0luZzFkQ0k2SWtRMFFVVTRNalEyUkRZeU5UQkZNVFk1TmpnNE5ERkNSRVk0TnpjMk1USTROVU13TlVKQ01VWWlmUS5leUp2WVdFaU9pSTNOemMzTUNJc0ltbHpjeUk2SW05aElpd2lZV2xrSWpvaU1UWXdJaXdpZFdsa0lqb2lOMjB6WTBkRU4zQkJVRVI1VGtOa1ptcFRhRFZFWnowOUlpd2lZMmxrSWpvaU4yMHpZMGRFTjNCQlVFUjVUa05rWm1wVGFEVkVaejA5SWl3aWFYTmhJam9pUm1Gc2MyVWlMQ0owYVdRaU9pSXlNVFEySWl3aWMybGtJam9pTkRJek5UazBPVEprT1RBeE5ERmtaR0k1WWpjMk5tUXhZV05tWVdWaE1UVWlMQ0prWjJraU9pSTROQ0lzSW1WNGNDSTZJakUxTURVME9UTTVNVFVpZlEuUmxmU29sM2VjSnlNWkZVRm8zQmNjaG5yZzVCWms4WmhodUlaemE5WGhlVGlxZF9NdThFU2w3LXp2UUp6NU1xSEhxNjlkSzlDNTZsNF9oM0JnYWd4cWciLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiZXhwaXJlc19pbiI6MTE1NCwicmVmcmVzaF90b2tlbiI6IjAwZTZmYjU2LWZjMDUtNGMyMS05ZDI1LTM2NGQxYmYxNGZlMSIsInJlZnJlc2hfdG9rZW5fZXhwaXJlc19pbiI6MzU1NCwiYmFzZV91cmkiOm51bGx9" }
+  let(:user_token) { "eyJhY2Nlc3NfdG9rZW4iOiJleUpoYkdjaU9pSkZVekkxTmlJc0luZzFkQ0k2SWtRMFFVVTRNalEyUkRZeU5UQkZNVFk1TmpnNE5ERkNSRVk0TnpjMk1USTROVU13TlVKQ01VWWlmUS5leUp2WVdFaU9pSTNOemMzTUNJc0ltbHpjeUk2SW05aElpd2lZV2xrSWpvaU1UWXdJaXdpZFdsa0lqb2lOMjB6WTBkRU4zQkJVRVI1VGtOa1ptcFRhRFZFWnowOUlpd2lZMmxrSWpvaU4yMHpZMGRFTjNCQlVFUjVUa05rWm1wVGFEVkVaejA5SWl3aWFYTmhJam9pUm1Gc2MyVWlMQ0owYVdRaU9pSXlNVFEySWl3aWMybGtJam9pTXpaak1qSmhNbVZpTldFek5HRTJZVGczWlRSaE9UTTNaV1ExWlRGbU1HVWlMQ0prWjJraU9pSTROQ0lzSW1WNGNDSTZJakUxTURVME9Ea3dOakVpZlEuOG9ULUZiM1E1S0U5eTljUFdqVGN5YzFxT0JjN0lWVlBJQ3Z2ZGNPdVdNQjFzaDRYaGNwV0Z1SHJrNW5pWVQ3V1FMUWNGbVoza01yMXlIVXdVaDctUkEiLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiZXhwaXJlc19pbiI6MTE0NywicmVmcmVzaF90b2tlbiI6IjMwZjJiNmU2LWZkZGEtNGIyMS05MGZmLWQ3NGJkNGFkMzJjNyIsInJlZnJlc2hfdG9rZW5fZXhwaXJlc19pbiI6MzU0NywiYmFzZV91cmkiOm51bGx9" }
 
   subject do
-    Saxo::User::Login.new(
-      user_id: user_id,
-      user_token: user_token
+    Saxo::User::Client.new(
+      token: user_token
     ).call.response
   end
 
@@ -32,7 +31,7 @@ describe Saxo::User::Login do
   describe 'bad credentials' do
     let(:user_id) { 'foooooobaaarrrr' }
     it 'throws error' do
-      expect { subject }.to raise_error(Trading::Errors::LoginException)
+      expect { subject }.to raise_error(Trading::Errors::ClientException)
     end
   end
 

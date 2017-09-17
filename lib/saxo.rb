@@ -5,6 +5,10 @@ require 'yajl/json_gem'
 require 'virtus'
 require 'httparty'
 require 'trading'
+require "base64"
+
+
+require 'pry-byebug'
 
 module Saxo
   autoload :Base, 'saxo/base'
@@ -203,6 +207,17 @@ module Saxo
       @logger ||= Logger.new($stdout).tap do |log|
         log.progname = name
       end
+    end
+    def call_api(uri, req)
+      Net::HTTP.start(uri.hostname, uri.port,
+                      use_ssl: uri.scheme == 'https') do |http|
+        http.set_debug_output($stdout)
+        http.request(req)
+      end
+    end
+
+    def decode_token(token)
+      JSON.parse(Base64.urlsafe_decode64(token))
     end
   end
 end

@@ -13,6 +13,8 @@ module Saxo
     autoload :OauthLink, 'saxo/user/oauth_link'
     autoload :OauthUrl, 'saxo/user/oauth_url'
     autoload :OauthUrlMobile, 'saxo/user/oauth_url_mobile'
+    autoload :Client, 'saxo/user/client'
+    autoload :Accounts, 'saxo/user/accounts'
 
     class << self
       #

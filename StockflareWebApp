@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>SAML Login Test</title>
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.min.js"
+      integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+      crossorigin="anonymous">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.js" integrity="sha256-GSRe5cHmmTD3DgBxRifzkNLaW1iwPTzt9kJ86rGa8tg=" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <h1>
+      SAML LOGIN COMPLETE
+    </h1>
+    <form action="https://developer.saxobank.com/sim/login/AuthnRequest" method="post">
+      SAMLRequest:<br>
+      <input id="saml_request" type="text" name="SAMLRequest"><br>
+      <input type="submit" value="Submit">
+    </form>
+  </body>
+</html>
