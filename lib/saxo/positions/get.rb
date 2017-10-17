@@ -24,11 +24,11 @@ module Saxo
         if resp.code == '200'
           positions = result['Data'].map do |p|
             if p['PositionBase']['AccountId'] == account_number
-              cost_basis = p['PositionBase']['OpenPrice'] ? p['PositionBase']['OpenPrice'] * p['PositionBase']['Amount'] : 0.0
+              cost_basis = p['PositionBase']['OpenPrice'] ? p['PositionBase']['OpenPrice'].to_f * p['PositionBase']['Amount'].to_f : 0.0
               symbol = p['DisplayAndFormat']['Symbol'].split(':')[0]
               change = 0.0
               if p['PositionView'] && p['PositionView']['ProfitLossOnTradeInBaseCurrency']
-                change = p['PositionView']['ProfitLossOnTradeInBaseCurrency']
+                change = p['PositionView']['ProfitLossOnTradeInBaseCurrency'].to_f
               end
               Saxo::Base::Position.new(
                 quantity: p['PositionBase']['Amount'],
@@ -56,8 +56,8 @@ module Saxo
           raise Trading::Errors::LoginException.new(
             type: :error,
             code: resp.code,
-            description: result['shortMessage'],
-            messages: result['longMessages']
+            description: 'Login failed',
+            messages: ['Login failed']
           )
         end
         Saxo.logger.info response.to_h
