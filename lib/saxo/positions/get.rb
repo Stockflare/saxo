@@ -21,17 +21,22 @@ module Saxo
         resp = Saxo.call_api(uri, req)
 
         result = JSON.parse(resp.body)
-        binding.pry
         if resp.code == '200'
           positions = result['Data'].map do |p|
             if p['PositionBase']['AccountId'] == account_number
+              cost_basis = p['PositionBase']['OpenPrice'] ? p['PositionBase']['OpenPrice'] * p['PositionBase']['Amount'] : 0.0
+              symbol = p['DisplayAndFormat']['Symbol'].split(':')[0]
+              change = 0.0
+              if p['PositionView'] && p['PositionView']['ProfitLossOnTradeInBaseCurrency']
+                change = p['PositionView']['ProfitLossOnTradeInBaseCurrency']
+              end
               Saxo::Base::Position.new(
                 quantity: p['PositionBase']['Amount'],
-                cost_basis: p['costbasis'],
-                ticker: p['symbol'].downcase,
-                instrument_class: p['symbolClass'].downcase,
-                change: p['totalGainLossDollar'],
-                holding: p['holdingType'].downcase
+                cost_basis: cost_basis.round(2),
+                ticker: symbol.downcase,
+                instrument_class: 'EQUITY_OR_ETF'.downcase,
+                change: change,
+                holding: 'long'
               ).to_h
             else
               nil
@@ -41,9 +46,10 @@ module Saxo
                                                       status: 200,
                                                       payload: {
                                                         type: 'success',
-                                                        client_id: result['ClientId'],
-                                                        client_key: result['ClientKey'],
-                                                        token: token,
+                                                        positions: positions,
+                                                        pages: 1,
+                                                        page: 0,
+                                                        token: token
                                                       },
                                                       messages: [])
         else
