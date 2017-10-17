@@ -8,41 +8,63 @@ module Saxo
       end
 
       def call
-        uri =  URI.join(Saxo.api_uri, 'v1/order/getAllOrderStatus').to_s
-        uri =  URI.join(Saxo.api_uri, 'v1/order/getSingleOrderStatus').to_s if order_number
 
-        body = {
-          token: token,
-          accountNumber: account_number,
-          apiKey: Saxo.app_key
-        }
+        tokens = Saxo.decode_token(token)
 
-        body[:orderNumber] = order_number if order_number
+        uri =  URI.join(Saxo.api_uri, 'sim/openapi/port/v1/orders/me?FieldGroups=DisplayAndFormat,ExchangeInfo&Status=All')
 
-        result = HTTParty.post(uri.to_s, body: body, format: :json)
-        if result['status'] == 'SUCCESS'
+        req = Net::HTTP::Get.new(uri, initheader = {
+                                    'Content-Type' => 'application/json',
+                                    'Accept' => 'application/json',
+                                    'Authorization' => "#{tokens['token_type']} #{tokens['access_token']}"
+                                  })
 
-          payload = {
-            type: 'success',
-            orders: Saxo::Order.parse_order_details(result['orderStatusDetailsList']),
-            token: result['token']
-          }
+        resp = Saxo.call_api(uri, req)
 
-          self.response = Saxo::Base::Response.new(
-            raw: result,
-            payload: payload,
-            messages: Array(result['shortMessage']),
-            status: 200
-          )
+        result = JSON.parse(resp.body)
+        if resp.code == '200'
+          orders = result['Data'].map do |order|
+            if order['AccountId'] == account_number
+              ticker = order['DisplayAndFormat']['Symbol'].split(':')[0]
+              filled_quantity = 0
+              if order['FilledAmount']
+                filled_quantity = order['FilledAmount'].to_f
+              end
+              filled_price = 0.0
+              if order['MarketPrice']
+                filled_price = order['MarketPrice'].to_f
+              end
+
+              {
+                ticker: ticker.downcase,
+                order_action: Saxo.order_status_actions[order['BuySell']],
+                filled_quantity: filled_quantity,
+                filled_price: filled_price,
+                filled_total: filled_price * filled_quantity,
+                order_number: order['OrderId'],
+                quantity: order['Amount'].to_f,
+                expiration: Saxo.order_status_expirations[order['Duration']['DurationType']],
+                status: Saxo.order_statuses[order['Status']]
+              }
+            else
+              nil
+            end
+          end.compact
+
+          self.response = Saxo::Base::Response.new(raw: result,
+                                                      status: 200,
+                                                      payload: {
+                                                        type: 'success',
+                                                        orders: orders,
+                                                        token: token
+                                                      },
+                                                      messages: [])
         else
-          #
-          # Status failed
-          #
-          raise Trading::Errors::OrderException.new(
+          raise Trading::Errors::LoginException.new(
             type: :error,
-            code: result['code'],
-            description: result['shortMessage'],
-            messages: result['longMessages']
+            code: resp.code,
+            description: 'Login failed',
+            messages: ['Login failed']
           )
         end
         Saxo.logger.info response.to_h

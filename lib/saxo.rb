@@ -30,14 +30,14 @@ module Saxo
     # Tradeit order statuses
     def order_statuses
       {
-        'PENDING' => :pending,
-        'OPEN' => :open,
-        'FILLED' => :filled,
+        'LockedPlacementPending' => :pending,
+        'Working' => :open,
+        'Filled' => :filled,
         'PART_FILLED' => :filling,
-        'CANCELED' => :cancelled,
+        'NotWorking' => :cancelled,
         'REJECTED' => :rejected,
         'NOT_FOUND' => :not_found,
-        'PENDING_CANCEL' => :pending_cancel,
+        'WorkingLockedCancelPending' => :pending_cancel,
         'EXPIRED' => :expired
       }
     end
@@ -52,8 +52,8 @@ module Saxo
     # Tradeit order actions
     def order_actions
       {
-        buy: 'buy',
-        sell: 'sell',
+        buy: 'Buy',
+        sell: 'Sell',
         buy_to_cover: 'buyToCover',
         sell_short: 'sellShort'
       }
@@ -70,11 +70,11 @@ module Saxo
 
     def order_status_actions
       {
-        'BUY' => :buy,
+        'Buy' => :buy,
         'BUY_OPEN' => :buy_open,
         'BUY_CLOSE' => :buy_close,
         'BUY_TO_COVER' => :buy_to_cover,
-        'SELL' => :sell,
+        'Sell' => :sell,
         'SELL_OPEN' => :sell_open,
         'SELL_CLOSE' => :sell_close,
         'SELL_SHORT' => :sell_short,
@@ -111,9 +111,9 @@ module Saxo
 
     def order_status_expirations
       {
-        'DAY' => :day,
-        'GTC' => :gtc,
-        'GOOD_TROUGH_DATE' => :gtd,
+        'DayOrder' => :day,
+        'GoodTillCancel' => :gtc,
+        'GoodTillDate' => :gtd,
         'UNKNOWN' => :unknown
       }
     end
