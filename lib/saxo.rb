@@ -17,8 +17,10 @@ module Saxo
   autoload :Order, 'saxo/order'
   autoload :Instrument, 'saxo/instrument'
 
+  CACHE_PREFIX = 'saxo_preview'
+
   class << self
-    attr_writer :logger, :api_uri, :app_key, :app_url, :authentication_url, :app_secret
+    attr_writer :logger, :api_uri, :app_key, :app_url, :authentication_url, :app_secret, :cache
 
     # Helper to configure .
     #
@@ -199,6 +201,19 @@ module Saxo
           code: 500,
           description: 'app_secret missing',
           messages: ['app_secret configuration variable has not been set']
+        )
+      end
+    end
+
+    def cache
+      if @cache
+        return @cache
+      else
+        raise Trading::Errors::ConfigException.new(
+          type: :error,
+          code: 500,
+          description: 'cache missing',
+          messages: ['cache configuration variable has not been set']
         )
       end
     end

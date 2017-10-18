@@ -1,3 +1,5 @@
+require 'digest'
+
 module Saxo
   module Order
     class Preview < Saxo::Base
@@ -5,7 +7,7 @@ module Saxo
         attribute :token, String
         attribute :account_number, String
         attribute :order_action, Symbol
-        attribute :quantity, Integer
+        attribute :quantity, Float
         attribute :ticker, String
         attribute :price_type, Symbol
         attribute :expiration, Symbol
@@ -14,75 +16,172 @@ module Saxo
         attribute :amount, Float
       end
 
+      def self.buying_power(power)
+        return power
+      end
+      def self.shares(shares)
+        return shares
+      end
+
       def call
-        # Tradeit does not support order amounts
-        if amount && amount != 0.0
-          raise Trading::Errors::OrderException.new(
-            type: :error,
-            code: 500,
-            description: 'Amount is not supported',
-            messages: 'Amount is not supported'
-          )
-        end
 
-        uri =  URI.join(Saxo.api_uri, 'v1/order/previewStockOrEtfOrder').to_s
-
-        body = {
+        tokens = Saxo.decode_token(token)
+        account_call = Saxo::User::Account.new(token: token, account_number: account_number).call.response
+        raw_account = account_call.raw
+        account = account_call.payload
+        user_id = account_number
+        buying_power = Saxo::Order::Preview.buying_power(account['power'].to_f)
+        shares = 0
+        positions = Saxo::Positions::Get.new(
           token: token,
-          accountNumber: account_number,
-          orderAction: Saxo.order_actions[order_action],
-          orderQuantity: quantity,
-          orderSymbol: ticker,
-          orderPriceType: Saxo.price_types[price_type],
-          orderExpiration: Saxo.order_expirations[expiration],
-          apiKey: Saxo.app_key
-        }
+          account_number: account_number
+        ).call.response.payload
+        position = positions.positions.select do |p|
+          p[:ticker] == ticker
+        end
+        shares = Saxo::Order::Preview.shares(position && !position.empty? ? position[0][:quantity] : 0.0)
 
-        body[:orderLimitPrice] = limit_price if price_type == :limit || price_type == :stop_limit
-        body[:orderStopPrice] = stop_price if price_type == :stop_market || price_type == :stop_limit
+        # Get the User details so we can get the Commission amount
+        # uri = URI.join(Saxo.api_uri, "v1/users/#{user_id}")
+        # req = Net::HTTP::Get.new(uri, initheader = {
+        #                            'Content-Type' => 'application/json',
+        #                            'x-mysolomeo-session-key' => token,
+        #                            'Accept' => 'application/json'
+        #                          })
+        # resp = Saxo.call_api(uri, req)
+        # result = JSON.parse(resp.body)
 
-        result = HTTParty.post(uri.to_s, body: body, format: :json)
-        if result['status'] == 'REVIEW_ORDER'
-          details = result['orderDetails']
-          # binding.pry
-          payload = {
-            type: 'review',
-            ticker: details['orderSymbol'].downcase,
-            order_action: Saxo.preview_order_actions.key(details['orderAction']),
-            quantity: details['orderQuantity'].to_i,
-            expiration: Saxo.preview_order_expirations.key(details['orderExpiration']),
-            price_label: details['orderPrice'],
-            value_label: details['orderValueLabel'],
-            message: details['orderMessage'],
-            last_price: details['lastPrice'].to_f,
-            bid_price: details['bidPrice'].to_f,
-            ask_price: details['askPrice'].to_f,
-            timestamp: parse_time(details['timestamp']),
-            buying_power: details['buyingPower'].to_f,
-            estimated_commission: details['estimatedOrderCommission'].to_f,
-            estimated_value: details['estimatedOrderValue'].to_f,
-            estimated_total: details['estimatedTotalValue'].to_f,
-            warnings: result['warningsList'].compact,
-            must_acknowledge: result['ackWarningsList'].compact,
-            amount: amount,
-            token: result['token']
-          }
+        if '200' == '200'
+          # Lookup the Stock in order to get ID and prices
+          # uri = URI.join(Saxo.api_uri, "v1/instruments?symbol=#{ticker}")
+          # req = Net::HTTP::Get.new(uri, initheader = {
+          #                            'Content-Type' => 'application/json',
+          #                            'x-mysolomeo-session-key' => token,
+          #                            'Accept' => 'application/json'
+          #                          })
+          #
+          # resp = Saxo.call_api(uri, req)
+          #
+          # result = JSON.parse(resp.body)
+          instrument = Saxo::Instrument::Details.new(token: token, ticker: ticker).call.response.payload
+          if '200' == '200'
+            estimated_quantity = 0
+            if order_action == :buy  || order_action == :buy_to_cover
+              if amount && amount > 0
+                estimated_value = amount
+                estimated_quantity = amount / instrument['rateAsk'].to_f
+              else
+                estimated_value = quantity * instrument['rateAsk'].to_f
+                estimated_quantity = quantity
+              end
+            else
+                if amount && amount > 0
+                  estimated_value = amount
+                  estimated_quantity = amount / instrument['rateBid'].to_f
+                else
+                  estimated_value = quantity * instrument['rateBid'].to_f
+                  estimated_quantity = quantity
+                end
+            end
 
-          self.response = Saxo::Base::Response.new(
-            raw: result,
-            payload: payload,
-            messages: result['shortMessage'].to_a.compact,
-            status: 200
-          )
+            # Calculate commission
+            commission_rate = 0
+
+            # First do basic commission
+            # if estimated_quantity < 1
+            #   commission_rate = commission_rate + account['commissionSchedule']['fractionalRate']
+            # else
+            #   commission_rate = commission_rate + account['commissionSchedule']['baseRate']
+            # end
+            #
+            # # User is above the baseShares amount
+            # if estimated_quantity > account['commissionSchedule']['baseShares']
+            #   # Add on the extra commission
+            #   extra_quantity = estimated_quantity - account['commissionSchedule']['baseShares']
+            #   commission_rate = commission_rate + (account['commissionSchedule']['excessRate'] * extra_quantity.ceil)
+            # end
+            # commission_rate = commission_rate.round(2)
+
+            # See if there are enough shares
+            if (order_action == :sell || order_action == :sell_short) && shares < quantity
+              raise Trading::Errors::OrderException.new(
+                type: :error,
+                code: 403,
+                description: 'You do not own enough shares',
+                messages: 'You do not own enough shares'
+              )
+            else
+              if (order_action == :sell || order_action == :sell_short) || ((order_action == :buy || order_action == :buy_to_cover) && (estimated_value + commission_rate) <= buying_power)
+                payload = {
+                  type: 'review',
+                  ticker: instrument['ticker'].downcase,
+                  order_action: order_action,
+                  quantity: quantity,
+                  expiration: expiration,
+                  price_label: '',
+                  value_label: '',
+                  message: '',
+                  last_price: instrument['lastTrade'].to_f,
+                  bid_price: instrument['rateBid'].to_f,
+                  ask_price: instrument['rateAsk'].to_f,
+                  timestamp: Time.now.utc.to_i,
+                  buying_power: account['power'].to_f,
+                  estimated_commission: commission_rate,
+                  estimated_value: estimated_value,
+                  estimated_total: estimated_value + commission_rate,
+                  warnings: [],
+                  must_acknowledge: [],
+                  amount: amount,
+                  token: token
+                }
+                # Prioritise Amount orders over quantity orders
+                # if amount && amount > 0
+                #   payload[:amount] = amount
+                #   payload[:quantity] = 0.0
+                # else
+                #   payload[:amount] = 0.0
+                #   payload[:quantity] = quantity
+                # end
+
+                raw = attributes.reject { |k, _v| k == :response }.merge(instrument: instrument,
+                                                                         account: account,
+                                                                         user_id: user_id,
+                                                                         commission: commission_rate,
+                                                                         amount: amount)
+                self.response = Saxo::Base::Response.new(
+                  raw: raw,
+                  payload: payload,
+                  messages: Array('success'),
+                  status: 200
+                )
+
+                # Cache the Order details for the Order Execute Call
+                Saxo.cache.set("#{Saxo::CACHE_PREFIX}_#{Digest::SHA256.base64digest(tokens['access_token'])}", response.to_h.to_json, 60)
+              else
+                raise Trading::Errors::OrderException.new(
+                  type: :error,
+                  code: 403,
+                  description: 'Not enough Buying Power',
+                  messages: 'Not enough Buying Power'
+                )
+              end
+
+            end
+          else
+            raise Trading::Errors::OrderException.new(
+              type: :error,
+              code: resp.code,
+              description: result['message'],
+              messages: result['message']
+            )
+          end
+
         else
-          #
-          # Order failed
-          #
           raise Trading::Errors::OrderException.new(
             type: :error,
-            code: result['code'],
-            description: result['shortMessage'],
-            messages: result['longMessages']
+            code: resp.code,
+            description: result['message'],
+            messages: result['message']
           )
         end
         Saxo.logger.info response.to_h

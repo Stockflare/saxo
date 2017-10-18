@@ -1,5 +1,11 @@
+memcached:
+  image: memcached
+  ports:
+    - "11211"
 saxo:
   build: .
   command: /bin/bash
   volumes:
     - .:/stockflare
+  links:
+    - memcached

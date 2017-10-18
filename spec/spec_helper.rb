@@ -6,6 +6,7 @@ require 'faker'
 require 'factory_girl'
 require 'pry'
 require 'pry-byebug'
+require 'memcached'
 
 Dir[Pathname(__FILE__).dirname.join('shared/*.rb').to_s].each { |f| require f }
 
@@ -17,6 +18,7 @@ Saxo.configure do |config|
   config.api_uri = ENV['SAXO_BASE_URI']
   config.app_key = ENV['SAXO_APP_KEY']
   config.app_url = ENV['SAXO_APP_URL']
+  config.cache = Memcached.new(ENV['MEMCACHED_CONNECTION'])
   config.authentication_url = ENV['SAXO_AUTHENTICATION_URL']
   config.app_secret = ENV['SAXO_APP_SECRET']
 end
