@@ -8,7 +8,7 @@ require 'trading'
 require "base64"
 
 
-require 'pry-byebug'
+# require 'pry-byebug'
 
 module Saxo
   autoload :Base, 'saxo/base'
