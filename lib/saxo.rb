@@ -96,18 +96,18 @@ module Saxo
     # Tradeit price types
     def price_types
       {
-        market: 'market',
-        limit: 'limit',
-        stop_market: 'stopMarket',
-        stop_limit: 'stopLimit'
+        market: 'Market',
+        limit: 'Limit',
+        stop_market: 'StopMarket',
+        stop_limit: 'StopLimit'
       }
     end
 
     # Tradeit order expirations
     def order_expirations
       {
-        day: 'day',
-        gtc: 'gtc'
+        day: 'DayOrder',
+        gtc: 'GoodTillCancel'
       }
     end
 

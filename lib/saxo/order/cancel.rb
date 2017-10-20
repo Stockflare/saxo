@@ -8,39 +8,39 @@ module Saxo
       end
 
       def call
-        uri =  URI.join(Saxo.api_uri, 'v1/order/cancelOrder').to_s
+        tokens = Saxo.decode_token(token)
+        account_call = Saxo::User::Account.new(token: token, account_number: account_number).call.response
+        raw_account = account_call.raw
+        uri =  URI.join(Saxo.api_uri, "sim/openapi/trade/v1/orders/#{order_number}/?AccountKey=#{raw_account['AccountKey']}")
 
-        body = {
-          token: token,
-          accountNumber: account_number,
-          orderNumber: order_number,
-          apiKey: Saxo.app_key
-        }
+        req = Net::HTTP::Delete.new(uri, initheader = {
+                                    'Content-Type' => 'application/json',
+                                    'Accept' => 'application/json',
+                                    'Authorization' => "#{tokens['token_type']} #{tokens['access_token']}"
+                                  })
 
-        result = HTTParty.post(uri.to_s, body: body, format: :json)
-        if result['status'] == 'SUCCESS'
+        resp = Saxo.call_api(uri, req)
 
+        result = JSON.parse(resp.body)
+        if resp.code == '200'
           payload = {
             type: 'success',
-            orders: Saxo::Order.parse_order_details(result['orderStatusDetailsList']),
-            token: result['token']
+            orders: [result['OrderId']],
+            token: token
           }
 
           self.response = Saxo::Base::Response.new(
             raw: result,
             payload: payload,
-            messages: Array(result['shortMessage']),
+            messages: Array('Order deleted'),
             status: 200
           )
         else
-          #
-          # Status failed
-          #
           raise Trading::Errors::OrderException.new(
             type: :error,
-            code: result['code'],
-            description: result['shortMessage'],
-            messages: result['longMessages']
+            code: '403',
+            description: 'Order could not be found',
+            messages: 'Order could not be found'
           )
         end
         Saxo.logger.info response.to_h

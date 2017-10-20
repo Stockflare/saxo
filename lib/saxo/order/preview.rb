@@ -144,7 +144,7 @@ module Saxo
                 # end
 
                 raw = attributes.reject { |k, _v| k == :response }.merge(instrument: instrument,
-                                                                         account: account,
+                                                                         account: raw_account,
                                                                          user_id: user_id,
                                                                          commission: commission_rate,
                                                                          amount: amount)

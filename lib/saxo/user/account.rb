@@ -69,7 +69,7 @@ module Saxo
               payload[:day_return_percent] = (total_day_return / (total_market_value - total_day_return)).round(4)
             end
             self.response = Saxo::Base::Response.new(
-              raw: result,
+              raw: result.merge('AccountKey' => account['AccountKey']),
               payload: payload,
               messages: [],
               status: 200

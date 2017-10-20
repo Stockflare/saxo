@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Saxo::User::OauthLink do
-  let(:o_auth_verifier) { 'b07ee0bf-01e6-4e96-9b9c-7923fbd154f7' }
+  let(:o_auth_verifier) { '33a6433d-e9ec-4314-8c2c-c4f271e25e57' }
   let(:broker) { :saxo }
 
   subject do
